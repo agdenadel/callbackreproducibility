@@ -1,0 +1,159 @@
+---
+title: "9. Benchmarking Runtime and Peak Memory Usage on PBMC Subsets"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{pbmc-timing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+knitr::opts_chunk$set(eval = FALSE)
+
+```
+
+```{r setup}
+suppressPackageStartupMessages({
+library(callbackreproducibility)
+
+library(Matrix)
+library(Seurat)
+library(presto)
+
+library(callback)
+library(scSHC)
+library(CHOIR)
+
+library(peakRAM)
+})
+
+set.seed(123456)
+```
+
+The dataset used here for benchmarking can be found on this [GitHub page](https://github.com/10XGenomics/single-cell-3prime-paper/blob/master/pbmc68k_analysis/README.md). It can also be directly downloaded [here](https://cf.10xgenomics.com/samples/cell/pbmc68k_rds/pbmc68k_data.rds).
+
+First, we define a function for loading the PBMC 68k dataset.
+```{r load_pbmc_function}
+load_pbmc_68k_dataset <- function() {
+  pbmc_68k_obj <- readRDS("pbmc68k_data.rds")
+  
+  mat <- pbmc_68k_obj$all_data$`17820`$hg19$mat
+  genes <- pbmc_68k_obj$all_data$`17820`$hg19$gene_symbols
+  barcodes <- pbmc_68k_obj$all_data$`17820`$hg19$barcodes
+  
+  rownames(mat) <- barcodes
+  #colnames(mat) <- genes #make.names(rownames(genes, unique = TRUE)
+  colnames(mat) <- make.names(rownames(genes), unique = TRUE)
+  
+  pbmc <- CreateSeuratObject(counts = t(mat))
+  
+  # clean up large objects that we don't need anymore
+  rm(pbmc_68k_obj)
+  rm(mat)
+  rm(genes)
+  rm(barcodes)
+  gc()
+  
+  return(pbmc)
+}
+```
+
+
+
+We set the sizes of subsets to analyze and load the full PBMC 68k dataset.
+```{r set_parameters}
+cell_sizes <- c(1000, 2000, 5000, seq(10^4, 6*10^4, 10^4), 68579)
+times <- c()
+
+cores <- 16
+
+# Load the PBMC dataset
+big_dataset <- load_pbmc_68k_dataset()
+
+timing_df <- data.frame()
+```
+
+
+Next, we loop over each subset size and cluster the data using `callback`, `sc-SHC`, and `CHOIR`.
+```{r benchmarking_loop}
+i <- 0
+for (num_cells in cell_sizes) {
+  i <- i + 1
+  
+  print("Processing num cells:")
+  print(num_cells)
+  
+  print("Loading subset")
+  seurat_obj <- subset(big_dataset, cells = sample(Cells(big_dataset), num_cells))
+
+  p <- 1000
+  seurat_obj <- seurat_workflow(seurat_obj, num_variable_features = p, algorithm="louvain", resolution_param = 0.8)
+
+  print("Running callback")
+  callback_start_time <- Sys.time()
+  
+  callback_memory <- peakRAM::peakRAM({
+  FindClustersCallback(seurat_obj, cores=cores, dims = 1:num_PCs)
+  callback_end_time <- Sys.time()
+  })$Peak_RAM_Used_MiB
+
+
+  print("Running scSHC")
+
+  scSHC_start_time <- Sys.time()
+  
+  scSHC_memory <- peakRAM::peakRAM({
+  scSHC(GetAssayData(seurat_obj, assay = "RNA", layer = "counts")[Seurat::VariableFeatures(seurat_obj),],
+                          num_features = 1000,
+                          num_PCs = 10,
+                          cores = cores)
+  })$Peak_RAM_Used_MiB
+
+  scSHC_end_time <- Sys.time()
+
+
+  print("Running CHOIR")
+
+  CHOIR_start_time <- Sys.time()
+  
+  CHOIR_memory <- peakRAM::peakRAM({
+  CHOIR(seurat_obj, 
+                  n_cores = cores,
+                  reduction = seurat_obj@reductions$pca@cell.embeddings[, 1:10],
+                  var_features = VariableFeatures(seurat_obj),
+                  use_assay = "RNA")
+  })$Peak_RAM_Used_MiB
+
+  
+  CHOIR_end_time <- Sys.time()
+
+
+  callback_time_taken <- difftime(callback_end_time, callback_start_time, units="mins")
+  scSHC_time_taken <- difftime(scSHC_end_time, scSHC_start_time, units="mins")
+  CHOIR_time_taken <- difftime(CHOIR_end_time, CHOIR_start_time, units="mins")
+  
+
+  num_cells <- c(num_cells, num_cells, num_cells)
+  method <- c("callback", "sc-SHC", "CHOIR")
+  time <- c(callback_time_taken, scSHC_time_taken, CHOIR_time_taken)
+  memory <- c(callback_memory, scSHC_memory, CHOIR_memory)
+
+  timing_df_new_row <- data.frame(num_cells, method, time, memory)
+  
+  print(timing_df_new_row)
+
+  timing_df <- rbind(timing_df, timing_df_new_row)
+}
+```
+
+Finally, we save the timing and peak memory use results to a csv file.
+```{r save_results}
+write.csv(timing_df, "pbmc_timing_df1.csv")
+```
+
+

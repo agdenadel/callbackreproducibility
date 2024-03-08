@@ -1,0 +1,157 @@
+---
+title: "7. Benchmarking Runtime and Peak Memory Usage on Multiple Datasets"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{multi-dataset-timing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+```{r setup}
+suppressPackageStartupMessages({
+library(callbackreproducibility)
+
+library(Seurat)
+library(SeuratData)
+library(presto)
+
+library(callback)
+library(scSHC)
+library(CHOIR)
+
+library(peakRAM)
+})
+```
+
+
+
+First, we download the datasets that are available through `SeuratData`.
+```{r install_datasets}
+SeuratData::InstallData("pbmc3k", force.reinstall = TRUE)
+SeuratData::InstallData("hcabm40k", force.reinstall = TRUE)
+SeuratData::InstallData("bmcite", force.reinstall = TRUE)
+```
+
+
+Define a function for benchmarking `callback`, `sc-SHC`, and `CHOIR` on
+a `SeuratObject`. The function calls each method with a fixed number of
+variable features, principal components, and CPU cores. The function
+returns a dataframe containing the runtime and peak memory usage of each
+method.
+```{r benchmarking_function}
+time_benchmarks <- function(seurat_obj, num_var_features, num_cores, num_pcs) {
+  seurat_obj <- seurat_workflow(seurat_obj, num_variable_features = num_var_features, resolution_param = 0.8, num_dims = num_pcs)
+  
+  print("Running callback")
+  callback_start_time <- Sys.time()
+  callback_memory <- peakRAM::peakRAM({
+  callback_louvain_results_obj <- FindClustersCallback(seurat_obj,
+                                                               cores=num_cores,
+                                                               dims=1:num_pcs,
+                                                               resolution_start = 1.5)
+  })$Peak_RAM_Used_MiB
+  callback_end_time <- Sys.time()
+  
+  print("Running scSHC")
+  scSHC_start_time <- Sys.time()
+  scSHC_memory <- peakRAM::peakRAM({
+  scSHC_clusters <- scSHC::scSHC(seurat_obj@assays$RNA@counts[Seurat::VariableFeatures(seurat_obj),],
+                          num_features = num_var_features,
+                          num_PCs = num_pcs,
+                          cores = num_cores)
+  })$Peak_RAM_Used_MiB
+  scSHC_end_time <- Sys.time()
+  
+  print("Running CHOIR")
+  
+  CHOIR_start_time <- Sys.time()
+  CHOIR_memory <- peakRAM::peakRAM({
+  seurat_obj <- CHOIR::CHOIR(seurat_obj, 
+                  n_cores = num_cores,
+                  reduction = seurat_obj@reductions$pca@cell.embeddings[, 1:10],
+                  var_features = Seurat::VariableFeatures(seurat_obj))
+  })$Peak_RAM_Used_MiB
+  
+  CHOIR_end_time <- Sys.time()
+  
+  callback_time_taken <- difftime(callback_end_time, callback_start_time, units="mins")
+  scSHC_time_taken <- difftime(scSHC_end_time, scSHC_start_time, units="mins")
+  CHOIR_time_taken <- difftime(CHOIR_end_time, CHOIR_start_time, units="mins")
+  
+  time <- c(callback_time_taken, scSHC_time_taken, CHOIR_time_taken)
+  method <- c("callback", "sc-SHC", "CHOIR")
+  memory <- c(callback_memory, scSHC_memory, CHOIR_memory)
+  
+  df <- data.frame(method, time, memory)
+
+  return(df)
+}
+```
+
+
+We set global parameters for benchmarking.
+```{r benchmarking_parameters}
+cores <- 16
+num_var_features <- 1000
+num_pcs = 10
+```
+
+We benchmark the PBMC 3K dataset.
+```{r benchmark_pbmc3k}
+print("Loading pbmc3k")
+data("pbmc3k")
+print("Updating pbmc3k")
+pbmc3k <- Seurat::UpdateSeuratObject(pbmc3k)
+print("Timing pbmc3k")
+pbmc_time_df <- time_benchmarks(seurat_obj = pbmc3k, num_var_features = num_var_features, num_cores = cores, num_pcs = num_pcs)
+rm(pbmc3k)
+gc()
+```
+
+
+We benchmark the Bone Marrow 30K dataset.
+```{r benchmark_bone_marrow_30k}
+print("Loading bmcite")
+data("bmcite")
+print("Updating bmcite")
+bmcite <- Seurat::UpdateSeuratObject(bmcite)
+print("Timing bmcite")
+bmcite_time_df <- time_benchmarks(seurat_obj = bmcite, num_var_features = num_var_features, num_cores = cores, num_pcs = num_pcs)
+rm(bmcite)
+gc()
+```
+
+We benchmark the Bone Marrow 40K dataset.
+```{r benchmark_bone_marrow_40k}
+print("Loading hcabm40k")
+data("hcabm40k")
+print("Updating hcabm40k")
+hcabm40k <- Seurat::UpdateSeuratObject(hcabm40k)
+print("Timing hcabm40k")
+hcabm40k_time_df <- time_benchmarks(seurat_obj = hcabm40k, num_var_features = num_var_features, num_cores = cores, num_pcs = num_pcs)
+rm(hcabm40k)
+gc()
+```
+
+
+We save the benchmarking results.
+```{r benchmarking_results}
+print(pbmc_time_df)
+print(bmcite_time_df)
+print(hcabm40k_time_df)
+
+write.csv(pbmc_time_df, "pbmc3k_timing1.csv")
+write.csv(bmcite_time_df, "bmcite_timing1.csv")
+write.csv(hcabm40k_time_df, "hcabm40k_timing1.csv")
+```
+
+

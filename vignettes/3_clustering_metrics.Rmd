@@ -1,0 +1,151 @@
+---
+title: "3. Calculate Clustering Metrics For Tabula Muris"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{clustering_metrics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(callbackreproducibility)
+```
+
+
+First we get a list of Seurat object files containing the clustering results for `callback`, `sc-SHC`, and `CHOIR`.
+```{r load_data}
+
+tissue_seurat_files <- list.files(pattern = "cluster_results_seurat.rds")
+```
+
+
+
+
+
+Then, we loop over all of the Seurat objects and calculate ARI, V-measure, homogeneity, completeness, FMI, and Jaccard similarity for the clusters determined by each method.
+```{r calculate_metrics}
+cluster_metrics_df <- data.frame()
+
+for (tissue_rds_file in tissue_seurat_files) {
+  tissue_seurat_obj <- readRDS(tissue_rds_file)
+  
+  
+  tissue_name <- sub('cluster_results_seurat.rds', "", tissue_rds_file)
+  
+  # callback metrics
+  ari <- pdfCluster::adj.rand.index(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                    tissue_seurat_obj@meta.data$callback_idents)
+  
+  v_measure_results <- clevr::v_measure(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                        tissue_seurat_obj@meta.data$callback_idents)
+  
+  homogeneity_results <- clevr::homogeneity(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                            tissue_seurat_obj@meta.data$callback_idents)
+  
+  completeness_results <- clevr::completeness(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                              tissue_seurat_obj@meta.data$callback_idents)
+  
+  fowlkes_mallows_results <- clevr::fowlkes_mallows(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                                    tissue_seurat_obj@meta.data$callback_idents)
+  
+  jaccard_results <- clusteval::jaccard(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                        tissue_seurat_obj@meta.data$callback_idents)
+  
+  method <- "callback"
+  
+  callback_metrics_df_row <- data.frame(tissue_name,
+                                     method,
+                                     ari,
+                                     v_measure_results,
+                                     fowlkes_mallows_results,
+                                     homogeneity_results,
+                                     completeness_results,
+                                     jaccard_results)
+  
+  cluster_metrics_df <- rbind(cluster_metrics_df, callback_metrics_df_row)
+  
+  
+  # sc-SHC metrics
+  ari <- pdfCluster::adj.rand.index(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                    tissue_seurat_obj@meta.data$scSHC_clusters)
+  
+  v_measure_results <- clevr::v_measure(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                        tissue_seurat_obj@meta.data$scSHC_clusters)
+  
+  homogeneity_results <- clevr::homogeneity(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                            tissue_seurat_obj@meta.data$scSHC_clusters)
+  
+  completeness_results <- clevr::completeness(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                              tissue_seurat_obj@meta.data$scSHC_clusters)
+  
+  fowlkes_mallows_results <- clevr::fowlkes_mallows(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                                    tissue_seurat_obj@meta.data$scSHC_clusters)
+  
+  jaccard_results <- clusteval::jaccard(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                        tissue_seurat_obj@meta.data$scSHC_clusters)
+  
+  method <- "sc-SHC"
+  
+  scSHC_metrics_df_row <- data.frame(tissue_name,
+                                     method,
+                                     ari,
+                                     v_measure_results,
+                                     fowlkes_mallows_results,
+                                     homogeneity_results,
+                                     completeness_results,
+                                     jaccard_results)
+  
+  cluster_metrics_df <- rbind(cluster_metrics_df, scSHC_metrics_df_row)
+  
+  # choir metrics
+  ari <- pdfCluster::adj.rand.index(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                    tissue_seurat_obj@meta.data$CHOIR_clusters_0.05)
+  
+  v_measure_results <- clevr::v_measure(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                        tissue_seurat_obj@meta.data$CHOIR_clusters_0.05)
+  
+  homogeneity_results <- clevr::homogeneity(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                            tissue_seurat_obj@meta.data$CHOIR_clusters_0.05)
+  
+  completeness_results <- clevr::completeness(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                              tissue_seurat_obj@meta.data$CHOIR_clusters_0.05)
+  
+  fowlkes_mallows_results <- clevr::fowlkes_mallows(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                                    tissue_seurat_obj@meta.data$CHOIR_clusters_0.05)
+  
+  jaccard_results <- clusteval::jaccard(tissue_seurat_obj@meta.data$cell_ontology_class, 
+                                        tissue_seurat_obj@meta.data$CHOIR_clusters_0.05)
+  
+  method <- "CHOIR"
+
+  
+  choir_metrics_df_row <- data.frame(tissue_name,
+                                   method,
+                                   ari,
+                                   v_measure_results,
+                                   fowlkes_mallows_results,
+                                   homogeneity_results,
+                                   completeness_results,
+                                   jaccard_results)
+  
+  cluster_metrics_df <- rbind(cluster_metrics_df, choir_metrics_df_row)
+  
+}
+```
+
+
+Finally, we save the metrics to a CSV file.
+```{r save_results}
+write.csv(cluster_metrics_df, file="cluster_metrics_df.csv")
+```
+
+
+
+
