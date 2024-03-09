@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 
 knitr::opts_chunk$set(warning = FALSE)
 
+knitr::opts_chunk$set(eval = FALSE)
 ```
 
 ```{r setup}

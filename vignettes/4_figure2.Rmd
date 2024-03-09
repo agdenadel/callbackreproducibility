@@ -240,12 +240,12 @@ patchwork_grid <- plot_spacer() + column_label_1 + column_label_2 + column_label
 
 ```{r save_grid}
 
-ggsave("tmp_umap_grid.png", patchwork_grid, width = 1.5 * 2^13, height = 2^13, units = "px")
+ggsave("fig2_umap_grid.png", patchwork_grid, width = 1.5 * 2^13, height = 2^13, units = "px")
 ```
 
 
 
-![](tmp_umap_grid.png){width=100%}
+![](fig2_umap_grid.png){width=100%}
 
 
 
