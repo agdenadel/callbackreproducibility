@@ -35,7 +35,7 @@ Suggests:
     knitr,
     rmarkdown
 Remotes: satijalab/seurat-data,
-    ramhiser/clusteval
+    ramhiser/clusteval,
     lcrawlab/callback
 VignetteBuilder: knitr
 URL: https://lcrawlab.github.io/callbackreproducibility/
