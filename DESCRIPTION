@@ -34,8 +34,8 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown
-Remotes: SeuratData=url::github.com/satijalab/seurat-data
-    clusteval=url::github.com/ramhiser/clusteval
+Remotes: SeuratData=url::github.com/satijalab/seurat-data,
+    clusteval=url::github.com/ramhiser/clusteval,
     callback=url::github.com/lcrawlab/callback
 VignetteBuilder: knitr
 URL: https://lcrawlab.github.io/callbackreproducibility/
