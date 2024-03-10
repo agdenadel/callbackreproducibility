@@ -17,10 +17,13 @@ git clone https://github.com/lcrawlab/callbackreproducibility
 Then, navigate to the repo directory and launch R
 ```bash
 cd callbackreproducibility
+```
+
+```bash
 R
 ```
 
-You can build the entire website using the following command.
+You can build the entire website using the following line of `R` code.
 ```r
 pkgdown::build_site()
 ```
