@@ -12,10 +12,8 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Imports: 
-    callback,
     Seurat,
     SeuratObject,
-    SeuratData,
     splatter,
     ggplot2,
     ggpattern,
@@ -30,7 +28,10 @@ Imports:
     aricode,
     clevr,
     clusteval,
-    magrittr
+    magrittr,
+    callback,
+    clusteval,
+    SeuratData
 Suggests: 
     knitr,
     rmarkdown
