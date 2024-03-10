@@ -1,0 +1,19 @@
+pandoc: 3.1.11
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  1_figure1: 1_figure1.html
+  2_cluster-tabula-muris: 2_cluster-tabula-muris.html
+  3_clustering_metrics: 3_clustering_metrics.html
+  4_figure2: 4_figure2.html
+  5_figure3: 5_figure3.html
+  6_tissue_umaps: 6_tissue_umaps.html
+  7_multi-dataset-timing: 7_multi-dataset-timing.html
+  8_seurat_data_and_liver_timing: 8_seurat_data_and_liver_timing.html
+  9_pbmc-timing: 9_pbmc-timing.html
+  9_plot_pbmc_timing: 9_plot_pbmc_timing.html
+last_built: 2024-03-10T17:51Z
+urls:
+  reference: https://lcrawlab.github.io/callbackreproducibility/reference
+  article: https://lcrawlab.github.io/callbackreproducibility/articles
+
