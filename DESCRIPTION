@@ -34,8 +34,8 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown
-Remotes: github::satijalab/seurat-data
-    github::ramhiser/clusteval
-    github::lcrawlab/callback
+Remotes: satijalab/seurat-data,
+    ramhiser/clusteval
+    lcrawlab/callback
 VignetteBuilder: knitr
 URL: https://lcrawlab.github.io/callbackreproducibility/
