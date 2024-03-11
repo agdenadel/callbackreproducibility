@@ -34,7 +34,7 @@ Note that each `Rmarkdown` file is not fully run by `R` by default. To properly 
 knitr::opts_chunk$set(eval = FALSE)
 ```
 
-from the file header. We do not recommend doing this for the vignettes that actually use `callback`, `sc-SHC`, and `CHOIR` for clustering. Rather, the R portions of these files should be put in a script and run using `Rscript`.
+from the file header. We do not recommend doing this for the vignettes that actually use `callback`, `sc-SHC`, and `CHOIR` for clustering because they have a long runtime. Rather, the R portions of these files should be put in a script and run using `Rscript`.
 
 
 ## Relevant Citations
