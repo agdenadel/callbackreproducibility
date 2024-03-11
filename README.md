@@ -28,7 +28,7 @@ You can build the entire website using the following line of `R` code.
 pkgdown::build_site()
 ```
 
-Note that each `Rmarkdown` file is not fully run by `R` by default. To properly run an have an `Rmarkdown` file run during the website building process, you need to remove 
+Note that each `Rmarkdown` file is not fully run by `R` by default. To properly run an an `Rmarkdown` file run during the website building process, you need to remove 
 
 ```R
 knitr::opts_chunk$set(eval = FALSE)
