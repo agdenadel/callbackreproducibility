@@ -42,4 +42,4 @@ A. DenAdel, M. Ramseier, A. Navia, A. Shalek, S. Raghavan, P. Winter, A. Amini, 
 
 ## Questions and Feedback
 For questions or concerns with `callbackreproducibility` or the `callback` `R` package, please contact
-[Alan DenAdel](mailto:alan_denadel@brown.edu) or [Lorin Crawford](lcrawford@microsoft.com). Any feedback on the manuscript or figure reproducibility is appreciated.
+[Alan DenAdel](mailto:alan_denadel@brown.edu) or [Lorin Crawford](lcrawford@microsoft.com). Any feedback on the manuscript or figure reproducibility is greatly appreciated.
