@@ -116,9 +116,6 @@ located after downloading it from Figshare.</p>
 <span>  </span>
 <span>  <span class="va">seurat_obj</span><span class="op">[[</span><span class="st">"cell_ontology_class"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">annotations</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/Cells.html" class="external-link">Cells</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span>,<span class="op">]</span><span class="op">$</span><span class="va">cell_ontology_class</span></span>
 <span>  </span>
-<span>  <span class="co"># remove cells with NAs in cell ontology class</span></span>
-<span>  <span class="co">#seurat_obj &lt;- subset(seurat_obj, subset = cell_ontology_class %in% levels(as.factor(seurat_obj@meta.data$cell_ontology_class)))</span></span>
-<span>  </span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Then, we loop over each tissue and cluster using
