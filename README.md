@@ -38,7 +38,7 @@ from the file header. We do not recommend doing this for the vignettes that actu
 
 
 ## Relevant Citations
-`callback` is currently on the bioRxiv, [here]([https://duckduckgo.com](https://www.biorxiv.org/content/10.1101/2024.03.08.584180v1)).
+`callback` is currently on the bioRxiv, [here](https://www.biorxiv.org/content/10.1101/2024.03.08.584180v1).
 
 A. DenAdel, M. Ramseier, A. Navia, A. Shalek, S. Raghavan, P. Winter, A. Amini, and L. Crawford. A knockoff calibration method to avoid over-clustering in single-cell RNA-sequencing. _bioRxiv_.
 
